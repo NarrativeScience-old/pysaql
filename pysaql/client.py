@@ -17,7 +17,12 @@ q0 = dataset("DTC_Opportunity_SAMPLE").foreach(
 
 q1 = dataset("opps").foreach(
     field("name")
-).filter(field("name") == "abc")
+).filter(
+    field("name") == "abc",
+    ~ field("flag"),
+    (field("number") > 0) | (field("number") < 0),
+    field("empty") == None
+)
 
 q = cogroup((q0, field("Day in Week")), (q1, field("Day in Week")), join_type=JoinType.full)
 

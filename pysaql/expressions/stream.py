@@ -1,4 +1,6 @@
 from abc import ABC
+import functools
+import operator
 from typing import List, Tuple, Union
 from typing_extensions import Self
 
@@ -120,8 +122,8 @@ class FilterStatement(StreamStatement):
         self.filters = filters
 
     def __str__(self) -> str:
-        fields = " and ".join(str(f) for f in self.filters)
-        return f"{self.stream.ref} = filter {self.stream.ref} by {fields};"
+        expr = functools.reduce(lambda left, right: BinaryOperation(operator.and_, left, right), self.filters)
+        return f"{self.stream.ref} = filter {self.stream.ref} by {expr};"
 
 
 class CogroupStatement(StreamStatement):

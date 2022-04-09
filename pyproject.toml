@@ -16,6 +16,7 @@ pre-commit = "^2.10.1"
 pytest = "^6.2.2"
 black = {version = "^21.9b0", allow-prereleases = true}
 cruft = "^2.9.0"
+flake8 = "^4.0.1"
 
 [tool.cruft]
 skip = ["pyproject.toml", "pysaql", "tests", "README.md", ".circleci/config.yml"]

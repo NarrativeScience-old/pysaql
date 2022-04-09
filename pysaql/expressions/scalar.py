@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional
 from typing_extensions import Self
 
 from .expression import Expression
-from .util import escape_identifier, escape_string
+from .util import escape_identifier, stringify
 
 OPERATOR_STRINGS = {
     operator.eq: "==",
@@ -17,41 +17,55 @@ OPERATOR_STRINGS = {
     operator.sub: "-",
     operator.mul: "*",
     operator.truediv: "/",
-    operator.and_: "and",
-    operator.or_: "or",
-    operator.not_: "not",
+    operator.and_: "&&",
+    operator.or_: "||",
+    operator.inv: "!",
+    operator.is_: "is",
+    operator.is_not: "is not",
 }
 
 class Operation:
     pass
 
-class BinaryOperation(Operation):
 
-    def __init__(self, op: Callable, left: Any, right: Any) -> None:
+class BooleanOperation(Operation):
+    def __and__(self, obj: Any) -> "BinaryOperation":
+        return BinaryOperation(operator.and_, self, obj)
+
+    def __or__(self, obj: Any) -> "BinaryOperation":
+        return BinaryOperation(operator.or_, self, obj, wrap=True)
+
+    def __invert__(self) -> "BinaryOperation":
+        return UnaryOperation(operator.inv, self)
+
+
+class BinaryOperation(BooleanOperation):
+
+    def __init__(self, op: Callable, left: Any, right: Any, wrap: bool = False) -> None:
         super().__init__()
         self.op = op
         self.left = left
         self.right = right
+        self.wrap = wrap
 
     def __str__(self) -> str:
-        if hasattr(self.left, "to_string"):
-            left = self.left.to_string()
-        elif isinstance(self.left, str):
-            left = escape_string(self.left)
-        else:
-            left = self.left
+        s = f"{stringify(self.left)} {OPERATOR_STRINGS[self.op]} {stringify(self.right)}"
+        if self.wrap:
+            s = f"({s})"
 
-        if hasattr(self.right, "to_string"):
-            right = self.right.to_string()
-        elif isinstance(self.right, str):
-            right = escape_string(self.right)
-        else:
-            right = self.right
+        return s
 
-        return f"{left} {OPERATOR_STRINGS[self.op]} {right}"
+class UnaryOperation(BooleanOperation):
 
+    def __init__(self, op: Callable, value: Any) -> None:
+        super().__init__()
+        self.op = op
+        self.value = value
 
-class Scalar(Expression, ABC):
+    def __str__(self) -> str:
+        return f"{OPERATOR_STRINGS[self.op]} {stringify(self.value)}"
+
+class Scalar(Expression, BooleanOperation, ABC):
     _alias: Optional[str] = None
 
     def alias(self, value: str) -> Self:
@@ -65,15 +79,17 @@ class Scalar(Expression, ABC):
     def __str__(self) -> str:
         s = self.to_string()
         if self._alias:
-           s += f" as {escape_identifier(self._alias)}"
+            s += f" as {escape_identifier(self._alias)}"
 
         return s
 
     def __eq__(self, obj: Any) -> BinaryOperation:
-        return BinaryOperation(operator.eq, self, obj)
+        op = operator.is_ if obj is None else operator.eq
+        return BinaryOperation(op, self, obj)
 
     def __ne__(self, obj: Any) -> BinaryOperation:
-        return BinaryOperation(operator.ne, self, obj)
+        op = operator.is_not if obj is None else operator.ne
+        return BinaryOperation(op, self, obj)
 
     def __lt__(self, obj: Any) -> BinaryOperation:
         return BinaryOperation(operator.lt, self, obj)
@@ -98,3 +114,6 @@ class Scalar(Expression, ABC):
 
     def __truediv__(self, obj: Any) -> BinaryOperation:
         return BinaryOperation(operator.truediv, self, obj)
+
+    def __neg__(self, obj: Any) -> BinaryOperation:
+        return BinaryOperation(operator.neg, self, obj)
