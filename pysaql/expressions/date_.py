@@ -81,19 +81,80 @@ class date_diff(Function):
 class days_between(Function):
     _name = "daysBetween"
 
-    def __init__(
-        self, date_part: DateDiffUnit, start_date: Scalar, end_date: Scalar
-    ) -> None:
-        super().__init__(date_part, start_date, end_date)
+    def __init__(self, start_date: Scalar, end_date: Scalar) -> None:
+        super().__init__(start_date, end_date)
 
 
 class now(Function):
     pass
 
 
+class year(Function):
+    pass
+
+
+class quarter(Function):
+    pass
+
+
+class month(Function):
+    pass
+
+
+class week(Function):
+    pass
+
+
+class day(Function):
+    pass
+
+
+class minute(Function):
+    pass
+
+
+class second(Function):
+    pass
+
+
+class fiscal_year(Function):
+    _name = "fiscalYear"
+
+
+class fiscal_quarter(Function):
+    _name = "fiscalQuarter"
+
+
+class fiscal_month(Function):
+    _name = "fiscalMonth"
+
+
+class fiscal_week(Function):
+    _name = "fiscalWeek"
+
+
+class epoch_day(Function):
+    _name = "epochDay"
+
+
+class epoch_second(Function):
+    _name = "epochSecond"
+
+
 class date(Function):
-    def __init__(self, year: Scalar, month: Scalar, day: Scalar) -> None:
+    def __init__(
+        self, year: Scalar, month: Optional[Scalar] = None, day: Optional[Scalar] = None
+    ) -> None:
         super().__init__(year, month, day)
+
+    def to_string(self) -> str:
+        args = [str(arg) for arg in self._args if arg is not None]
+        name = self._name or self.__class__.__name__
+        s = f"{', '.join(args)}"
+        if len(args) > 1:
+            s = f"{name}({s})"
+
+        return s
 
 
 class relative_date(Expression):

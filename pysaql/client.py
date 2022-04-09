@@ -36,9 +36,7 @@ q1 = (
         field("empty") == None,
         field("list").in_(["ny", "ma"]),
         field("closed_date").in_(
-            date_range(
-                date(2022, 4, 1), relative_date(Timeframe.past, DateUnit.month, 2)
-            )
+            date_range(date(2022, 1), relative_date(Timeframe.past, DateUnit.month, 2))
         ),
     )
 )
