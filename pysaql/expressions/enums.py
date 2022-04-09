@@ -1,11 +1,10 @@
+from asyncio import futures
 from enum import Enum
 
 
 class StrEnum(Enum):
-
     def __str__(self):
-        return self.name
-
+        return self.value
 
 
 class Order(StrEnum):
@@ -18,3 +17,30 @@ class JoinType(StrEnum):
     left = "left"
     right = "right"
     full = "full"
+
+
+class DateDiffUnit(StrEnum):
+    year = "year"
+    quarter = "quarter"
+    month = "month"
+    day = "day"
+    week = "week"
+    hour = "hour"
+    minute = "minute"
+    second = "second"
+
+
+class Timeframe(StrEnum):
+    current = "current"
+    future = "ahead"
+    past = "ago"
+
+
+class DateUnit(StrEnum):
+    year = "year"
+    quarter = "quarter"
+    month = "month"
+    day = "day"
+    week = "week"
+    fiscal_year = "year"
+    fiscal_quarter = "quarter"

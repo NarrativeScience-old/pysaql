@@ -1,30 +1,17 @@
-from typing import Optional
+from typing import Any, List, Optional
 
 from .scalar import Scalar
 
 
-class day_in_week(Scalar):
-    date: Scalar
+class Function(Scalar):
+    _args: List[Any]
+    _name: Optional[str] = None
 
-    def __init__(self, date: Scalar):
+    def __init__(self, *args: Any) -> None:
         super().__init__()
-        self.date = date
+        self._args = args
 
     def to_string(self) -> str:
-        return f"day_in_week({self.date.to_string()})"
-
-
-class to_date(Scalar):
-    string: Scalar
-    format_string: Optional[str] = None
-
-    def __init__(self, string: Scalar, format_string: Optional[str] = None):
-        super().__init__()
-        self.string = string
-        self.format_string = format_string
-
-    def to_string(self) -> str:
-        args = [self.string.to_string()]
-        if self.format_string:
-            args.append(self.format_string)
-        return f"toDate({', '.join(args)})"
+        args = [str(arg) for arg in self._args if arg is not None]
+        name = self._name or self.__class__.__name__
+        return f"{name}({', '.join(args)})"

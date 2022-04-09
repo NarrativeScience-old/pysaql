@@ -22,7 +22,9 @@ OPERATOR_STRINGS = {
     operator.inv: "!",
     operator.is_: "is",
     operator.is_not: "is not",
+    operator.contains: "in",
 }
+
 
 class Operation:
     pass
@@ -40,7 +42,6 @@ class BooleanOperation(Operation):
 
 
 class BinaryOperation(BooleanOperation):
-
     def __init__(self, op: Callable, left: Any, right: Any, wrap: bool = False) -> None:
         super().__init__()
         self.op = op
@@ -55,8 +56,8 @@ class BinaryOperation(BooleanOperation):
 
         return s
 
-class UnaryOperation(BooleanOperation):
 
+class UnaryOperation(BooleanOperation):
     def __init__(self, op: Callable, value: Any) -> None:
         super().__init__()
         self.op = op
@@ -64,6 +65,7 @@ class UnaryOperation(BooleanOperation):
 
     def __str__(self) -> str:
         return f"{OPERATOR_STRINGS[self.op]} {stringify(self.value)}"
+
 
 class Scalar(Expression, BooleanOperation, ABC):
     _alias: Optional[str] = None
@@ -117,3 +119,6 @@ class Scalar(Expression, BooleanOperation, ABC):
 
     def __neg__(self, obj: Any) -> BinaryOperation:
         return BinaryOperation(operator.neg, self, obj)
+
+    def in_(self, iterable: Expression) -> BinaryOperation:
+        return BinaryOperation(operator.contains, self, iterable)

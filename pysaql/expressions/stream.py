@@ -4,8 +4,6 @@ import operator
 from typing import List, Tuple, Union
 from typing_extensions import Self
 
-from attr import field
-
 from .enums import JoinType, Order
 from .scalar import BinaryOperation, Scalar
 from .expression import Expression
@@ -51,6 +49,7 @@ class Stream(Expression):
         self._statements.append(LimitStatement(self, limit))
         return self
 
+
 class LoadStatement(StreamStatement):
     def __init__(self, stream: Stream, name: str):
         super().__init__()
@@ -58,7 +57,7 @@ class LoadStatement(StreamStatement):
         self.name = name
 
     def __str__(self) -> str:
-        return f"{self.stream.ref} = load \"{self.name}\";"
+        return f'{self.stream.ref} = load "{self.name}";'
 
 
 class ProjectionStatement(StreamStatement):
@@ -73,7 +72,11 @@ class ProjectionStatement(StreamStatement):
 
 
 class OrderStatement(StreamStatement):
-    def __init__(self, stream: Stream, fields: Union[Scalar, List[Scalar], List[Tuple[Scalar, Order]]]) -> None:
+    def __init__(
+        self,
+        stream: Stream,
+        fields: Union[Scalar, List[Scalar], List[Tuple[Scalar, Order]]],
+    ) -> None:
         super().__init__()
         self.stream = stream
         self.fields = fields
@@ -122,12 +125,20 @@ class FilterStatement(StreamStatement):
         self.filters = filters
 
     def __str__(self) -> str:
-        expr = functools.reduce(lambda left, right: BinaryOperation(operator.and_, left, right), self.filters)
+        expr = functools.reduce(
+            lambda left, right: BinaryOperation(operator.and_, left, right),
+            self.filters,
+        )
         return f"{self.stream.ref} = filter {self.stream.ref} by {expr};"
 
 
 class CogroupStatement(StreamStatement):
-    def __init__(self, stream: Stream, streams: List[Tuple[Stream, Scalar]], join_type: JoinType = JoinType.inner):
+    def __init__(
+        self,
+        stream: Stream,
+        streams: List[Tuple[Stream, Scalar]],
+        join_type: JoinType = JoinType.inner,
+    ):
         super().__init__()
         self.stream = stream
         self.streams = streams
@@ -150,8 +161,7 @@ class CogroupStatement(StreamStatement):
         return "\n".join(lines)
 
 
-class dataset(Stream):
-
+class load(Stream):
     def __init__(self, name: str):
         super().__init__()
         self._statements.append(LoadStatement(self, name))
@@ -160,7 +170,9 @@ class dataset(Stream):
 class cogroup(Stream):
     join_type: JoinType
 
-    def __init__(self, *streams: Tuple[Stream, Scalar], join_type: JoinType = JoinType.inner):
+    def __init__(
+        self, *streams: Tuple[Stream, Scalar], join_type: JoinType = JoinType.inner
+    ):
         super().__init__()
         max_id = 0
         for i, (stream, _) in enumerate(streams):
