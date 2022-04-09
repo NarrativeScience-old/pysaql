@@ -1,10 +1,13 @@
 from abc import ABC
 import functools
 import operator
-from typing import List, Tuple, Union
+from typing import List, Optional, Sequence, Tuple, Union
 from typing_extensions import Self
 
-from .enums import JoinType, Order
+from pysaql.expressions.util import stringify
+
+from .enums import DateTypeString, JoinType, Order
+from .field import field
 from .scalar import BinaryOperation, Scalar
 from .expression import Expression
 
@@ -49,6 +52,17 @@ class Stream(Expression):
         self._statements.append(LimitStatement(self, limit))
         return self
 
+    def fill(
+        self,
+        date_cols: Sequence[field],
+        date_type_string: DateTypeString,
+        partition: Optional[field] = None,
+    ) -> Self:
+        self._statements.append(
+            FillStatement(self, date_cols, date_type_string, partition=partition)
+        )
+        return self
+
 
 class LoadStatement(StreamStatement):
     def __init__(self, stream: Stream, name: str):
@@ -83,11 +97,11 @@ class OrderStatement(StreamStatement):
 
     def __str__(self) -> str:
         fields = []
-        for field in self.fields:
-            if isinstance(field, Scalar):
-                fields.append(f"{field} asc")
+        for f in self.fields:
+            if isinstance(f, Scalar):
+                fields.append(f"{f} asc")
             else:
-                fields.append(f"{field[0]} {field[1]}")
+                fields.append(f"{f[0]} {f[1]}")
 
         if len(fields) > 1:
             fields = f"({', '.join(fields)})"
@@ -148,8 +162,8 @@ class CogroupStatement(StreamStatement):
         lines = []
         streams = []
         for i, item in enumerate(self.streams):
-            stream, field = item
-            s = f"{stream.ref} by {field}"
+            stream, field_ = item
+            s = f"{stream.ref} by {field_}"
             if i == 0 and self.join_type != JoinType.inner:
                 s += f" {self.join_type}"
 
@@ -159,6 +173,30 @@ class CogroupStatement(StreamStatement):
         lines.append(f"{self.stream.ref} = cogroup {', '.join(streams)};")
 
         return "\n".join(lines)
+
+
+class FillStatement(StreamStatement):
+    def __init__(
+        self,
+        stream: Stream,
+        date_cols: Sequence[field],
+        date_type_string: DateTypeString,
+        partition: Optional[field] = None,
+    ):
+        super().__init__()
+        self.stream = stream
+        self.date_cols = date_cols
+        self.date_type_string = date_type_string
+        self.partition = partition
+
+    def __str__(self) -> str:
+        args = [
+            f"dateCols=({','.join(str(c) for c in self.date_cols)}, {stringify(str(self.date_type_string))})"
+        ]
+        if self.partition:
+            args.append(f"partition={stringify(self.partition)}")
+
+        return f"{self.stream.ref} = fill {self.stream.ref} by ({', '.join(args)});"
 
 
 class load(Stream):

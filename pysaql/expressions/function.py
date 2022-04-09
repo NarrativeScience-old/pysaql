@@ -15,3 +15,7 @@ class Function(Scalar):
         args = [str(arg) for arg in self._args if arg is not None]
         name = self._name or self.__class__.__name__
         return f"{name}({', '.join(args)})"
+
+
+class coalesce(Function):
+    pass

@@ -44,3 +44,11 @@ class DateUnit(StrEnum):
     week = "week"
     fiscal_year = "year"
     fiscal_quarter = "quarter"
+
+
+class DateTypeString(StrEnum):
+    y_m = "Y-M"
+    y_q = "Y-Q"
+    y = "Y"
+    y_w = "Y-W"
+    y_m_d = "Y-M-D"

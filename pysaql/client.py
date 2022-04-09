@@ -6,7 +6,8 @@ q = foreach q generate 'Day in Week', count() as 'count';
 """
 
 from pysaql.expressions.aggregation import sum
-from pysaql.expressions.enums import DateUnit, JoinType, Timeframe
+from pysaql.expressions.enums import DateTypeString, DateUnit, JoinType, Timeframe
+from pysaql.expressions.function import coalesce
 from pysaql.expressions.stream import cogroup, load
 from pysaql.expressions.date_ import (
     date,
@@ -28,7 +29,8 @@ q0 = (
 
 q1 = (
     load("opps")
-    .foreach(field("name"))
+    .foreach(field("name"), coalesce(field("number"), field("other number"), 0))
+    .fill([field("Year"), field("Month")], DateTypeString.y_m, partition=field("Type"))
     .filter(
         field("name") == "abc",
         ~field("flag"),
