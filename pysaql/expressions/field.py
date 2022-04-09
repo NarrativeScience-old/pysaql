@@ -1,5 +1,5 @@
 from .scalar import Scalar
-from .util import escape
+from .util import escape_identifier
 
 
 class field(Scalar):
@@ -10,4 +10,4 @@ class field(Scalar):
         self.name = name
 
     def to_string(self) -> str:
-        return escape(self.name)
+        return escape_identifier(self.name)

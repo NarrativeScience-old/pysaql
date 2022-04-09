@@ -5,7 +5,7 @@ from typing_extensions import Self
 from attr import field
 
 from .enums import JoinType, Order
-from .scalar import Scalar
+from .scalar import BinaryOperation, Scalar
 from .expression import Expression
 
 
@@ -35,6 +35,10 @@ class Stream(Expression):
 
     def group(self, *fields: Scalar) -> Self:
         self._statements.append(GroupStatement(self, fields))
+        return self
+
+    def filter(self, *filters: BinaryOperation) -> Self:
+        self._statements.append(FilterStatement(self, filters))
         return self
 
     def order(self, *fields: Union[Scalar, Tuple[Scalar, Order]]) -> Self:
@@ -108,6 +112,16 @@ class GroupStatement(StreamStatement):
         fields = ", ".join(str(f) for f in self.fields)
         return f"{self.stream.ref} = group {self.stream.ref} by {fields};"
 
+
+class FilterStatement(StreamStatement):
+    def __init__(self, stream: Stream, filters: List[BinaryOperation]):
+        super().__init__()
+        self.stream = stream
+        self.filters = filters
+
+    def __str__(self) -> str:
+        fields = " and ".join(str(f) for f in self.filters)
+        return f"{self.stream.ref} = filter {self.stream.ref} by {fields};"
 
 
 class CogroupStatement(StreamStatement):
