@@ -1,7 +1,7 @@
 """Contains utility functions for working with expressions"""
 
 import json
-from typing import Any
+from typing import Any, List
 
 
 def escape_identifier(s: str) -> str:
@@ -19,3 +19,8 @@ def stringify(s: Any) -> str:
         return json.dumps(s)
     else:
         return s
+
+
+def stringify_list(seq: List) -> str:
+    seq = [seq] if not isinstance(seq, (list, tuple)) else seq
+    return f"({', '.join(str(s) for s in seq)})" if len(seq) > 1 else str(seq[0])

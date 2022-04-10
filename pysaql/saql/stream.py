@@ -4,12 +4,12 @@ import operator
 from typing import List, Optional, Sequence, Tuple, Union
 from typing_extensions import Self
 
-from pysaql.expressions.util import stringify
 
 from .enums import DateTypeString, JoinType, Order
 from .field import field
 from .scalar import BinaryOperation, Scalar
 from .expression import Expression
+from .util import stringify
 
 
 class StreamStatement(ABC):

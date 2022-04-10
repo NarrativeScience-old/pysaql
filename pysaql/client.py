@@ -5,18 +5,18 @@ q = group q by 'Day in Week';
 q = foreach q generate 'Day in Week', count() as 'count';
 """
 
-from pysaql.expressions.aggregation import sum
-from pysaql.expressions.enums import DateTypeString, DateUnit, JoinType, Timeframe
-from pysaql.expressions.function import coalesce
-from pysaql.expressions.stream import cogroup, load
-from pysaql.expressions.date_ import (
+from pysaql.saql.aggregation import dense_rank, sum
+from pysaql.saql.enums import DateTypeString, DateUnit, JoinType, Order, Timeframe
+from pysaql.saql.function import coalesce
+from pysaql.saql.stream import cogroup, load
+from pysaql.saql.date_ import (
     date,
     date_range,
     day_in_week,
     relative_date,
     to_date,
 )
-from pysaql.expressions.field import field
+from pysaql.saql.field import field
 
 q0 = (
     load("DTC_Opportunity_SAMPLE")
@@ -40,6 +40,22 @@ q1 = (
         field("closed_date").in_(
             date_range(date(2022, 1), relative_date(Timeframe.past, DateUnit.month, 2))
         ),
+    )
+    .foreach(
+        sum(field("amount"))
+        .over(
+            (None, 2),
+            [field("region"), field("state")],
+            [(sum(field("amount")), Order.desc)],
+        )
+        .alias("total amount"),
+        dense_rank()
+        .over(
+            (None, None),
+            field("county"),
+            field("region"),
+        )
+        .alias("total amount"),
     )
 )
 
