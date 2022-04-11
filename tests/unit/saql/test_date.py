@@ -2,7 +2,7 @@
 
 import pysaql.saql.date_ as mod_ut
 from pysaql.saql.enums import RelativeDateUnit, RelativeTimeframe
-from pysaql.saql.field import field
+from pysaql.saql.scalar import field
 
 
 def test_date():

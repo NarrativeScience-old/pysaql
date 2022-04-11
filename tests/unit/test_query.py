@@ -9,8 +9,8 @@ from pysaql.saql.enums import (
     RelativeDateUnit,
     RelativeTimeframe,
 )
-from pysaql.saql.field import field
 from pysaql.saql.function import coalesce
+from pysaql.saql.scalar import field
 from pysaql.saql.stream import cogroup, load
 
 

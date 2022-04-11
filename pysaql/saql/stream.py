@@ -9,8 +9,7 @@ from typing_extensions import Self
 
 from .enums import FillDateTypeString, JoinType, Order
 from .expression import Expression
-from .field import field
-from .scalar import BinaryOperation, Scalar
+from .scalar import BinaryOperation, field, Scalar
 from .util import stringify, stringify_list
 
 __ALL__ = ["load", "cogroup"]

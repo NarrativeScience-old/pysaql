@@ -3,7 +3,7 @@
 import pytest
 
 from pysaql.saql.enums import FillDateTypeString, JoinType, Order
-from pysaql.saql.field import field
+from pysaql.saql.scalar import field
 from pysaql.saql.stream import cogroup, load, Stream
 
 
