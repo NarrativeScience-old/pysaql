@@ -1,7 +1,7 @@
 # See: https://help.github.com/en/articles/about-code-owners
 
 # Default ownership
-*                         @NarrativeScience/analytics-codeowners
+*                         @NarrativeScience/nexio-analytics-codeowners
 
 # Infra related codeowners
 .circleci                 @NarrativeScience/cloud-eng-approved
