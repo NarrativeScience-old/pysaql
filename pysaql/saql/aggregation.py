@@ -1,6 +1,7 @@
 """Contains aggregation function definitions"""
 
 from typing import Optional, Sequence, Tuple, Union
+
 from typing_extensions import Self
 
 from .enums import Order

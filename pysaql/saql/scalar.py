@@ -2,7 +2,8 @@
 
 from abc import ABC, abstractmethod
 import operator
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Sequence, Union
+
 from typing_extensions import Self
 
 from .expression import Expression
@@ -39,7 +40,7 @@ class Operation:
 
 
 class BooleanOperation(Operation):
-    """Mixin that defines boolean comparision methods"""
+    """Mixin that defines boolean comparison methods"""
 
     def __and__(self, obj: Any) -> "BinaryOperation":
         """Creates a binary operation using the `and` operator
@@ -294,11 +295,11 @@ class Scalar(Expression, BooleanOperation, ABC):
         """
         return BinaryOperation(operator.neg, self, obj)
 
-    def in_(self, iterable: Expression) -> BinaryOperation:
+    def in_(self, iterable: Union[Sequence, Expression]) -> BinaryOperation:
         """Creates a binary operation using the `contains` operator
 
         Args:
-            obj: Object to use for the right operand
+            iterable: Iterable that may contain the current scalar
 
         Returns:
             binary operation

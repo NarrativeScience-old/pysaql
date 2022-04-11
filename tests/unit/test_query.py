@@ -1,23 +1,17 @@
 """Contains tests rendered queries"""
 
 from pysaql.saql.aggregation import count, dense_rank, sum
+from pysaql.saql.date_ import date, date_range, day_in_week, relative_date, to_date
 from pysaql.saql.enums import (
     FillDateTypeString,
-    RelativeDateUnit,
     JoinType,
     Order,
+    RelativeDateUnit,
     RelativeTimeframe,
 )
+from pysaql.saql.field import field
 from pysaql.saql.function import coalesce
 from pysaql.saql.stream import cogroup, load
-from pysaql.saql.date_ import (
-    date,
-    date_range,
-    day_in_week,
-    relative_date,
-    to_date,
-)
-from pysaql.saql.field import field
 
 
 def test_complex():
@@ -38,7 +32,7 @@ def test_complex():
     )
 
     q1 = (
-        load("opps")
+        load("opportunities")
         .foreach(field("name"), coalesce(field("number"), field("other number"), 0))
         .fill(
             [field("Year"), field("Month")],
@@ -49,7 +43,7 @@ def test_complex():
             field("name") == "abc",
             ~field("flag"),
             (field("number") > 0) | (field("number") < 0),
-            field("empty") == None,
+            field("empty") == None,  # noqa: E711
             field("list").in_(["ny", "ma"]),
             field("closed_date").in_(
                 date_range(
@@ -87,7 +81,7 @@ def test_complex():
         """q0 = foreach q0 generate 'Day in Week', sum('amount') as 'total_amount', count() as 'count';""",
         """q0 = order q0 by 'count' asc;""",
         """q0 = limit q0 5;""",
-        """q1 = load "opps";""",
+        """q1 = load "opportunities";""",
         """q1 = foreach q1 generate 'name', coalesce('number', 'other number', 0);""",
         """q1 = fill q1 by (dateCols=('Year','Month', "Y-M"), partition='Type');""",
         """q1 = filter q1 by 'name' == "abc" && ! 'flag' && ('number' > 0 || 'number' < 0) && 'empty' is null && 'list' in ["ny", "ma"] && 'closed_date' in [date(2022, 1).."2 months ago"];""",

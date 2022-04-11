@@ -2,16 +2,15 @@
 
 from abc import ABC
 import functools
-from multiprocessing.sharedctypes import Value
 import operator
 from typing import List, Optional, Sequence, Tuple, Union
+
 from typing_extensions import Self
 
-
 from .enums import FillDateTypeString, JoinType, Order
+from .expression import Expression
 from .field import field
 from .scalar import BinaryOperation, Scalar
-from .expression import Expression
 from .util import stringify
 
 

@@ -239,6 +239,7 @@ class date(Function):
             year: Year value
             month: Month value. Defaults to None.
             day: Day value. Defaults to None.
+
         """
         super().__init__(year, month, day)
 
