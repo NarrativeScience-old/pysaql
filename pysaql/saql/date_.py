@@ -231,7 +231,10 @@ class date(Function):
     """Returns a date that can be used in a filter"""
 
     def __init__(
-        self, year: Scalar, month: Optional[Scalar] = None, day: Optional[Scalar] = None
+        self,
+        year: Union[Scalar, int],
+        month: Optional[Union[Scalar, int]] = None,
+        day: Optional[Union[Scalar, int]] = None,
     ) -> None:
         """Initializer
 
@@ -270,7 +273,8 @@ class relative_date(Expression):
         Args:
             timeframe: Timeframe of the relative date range
             unit: Date unit
-            quantity: Number of date units. Defaults to 1.
+            quantity: Number of date units. This is ignored if the timeframe is current.
+                Defaults to 1.
 
         """
         super().__init__()

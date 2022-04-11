@@ -91,6 +91,9 @@ class BinaryOperation(BooleanOperation):
 
         """
         super().__init__()
+        if op not in OPERATOR_STRINGS:
+            operators = ", ".join(f"operator.{fn.__name__}" for fn in OPERATOR_STRINGS)
+            raise ValueError(f"Operator must be one of: {operators}. Provided: {op}")
         self.op = op
         self.left = left
         self.right = right
