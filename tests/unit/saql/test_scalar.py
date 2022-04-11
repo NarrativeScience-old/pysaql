@@ -61,9 +61,28 @@ def test_truediv():
 
 def test_neg():
     """Should return string for neg operation"""
-    assert str(-field("foo")) == """!'foo'"""
+    assert str(-field("foo")) == """- 'foo'"""
 
 
 def test_in():
     """Should return string for in operation"""
     assert str(field("foo").in_(["bar"])) == """'foo' in ["bar"]"""
+
+
+def test_and():
+    """Should return string for and operation"""
+    assert (
+        str((field("foo") > 0) & (field("foo") < 10)) == """'foo' > 0 && 'foo' < 10"""
+    )
+
+
+def test_or():
+    """Should return string for or operation"""
+    assert (
+        str((field("foo") > 0) | (field("foo") < 10)) == """('foo' > 0 || 'foo' < 10)"""
+    )
+
+
+def test_inv():
+    """Should return string for inv operation"""
+    assert str(~field("foo")) == """! 'foo'"""

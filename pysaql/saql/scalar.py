@@ -11,22 +11,23 @@ from .util import escape_identifier, stringify
 
 # Mapping from operator function to its string representation in SAQL
 OPERATOR_STRINGS = {
-    operator.eq: "==",
-    operator.ne: "!=",
-    operator.lt: "<",
-    operator.le: "<=",
-    operator.gt: ">",
-    operator.ge: ">=",
     operator.add: "+",
-    operator.sub: "-",
-    operator.mul: "*",
-    operator.truediv: "/",
     operator.and_: "&&",
-    operator.or_: "||",
+    operator.contains: "in",
+    operator.eq: "==",
+    operator.ge: ">=",
+    operator.gt: ">",
     operator.inv: "!",
     operator.is_: "is",
     operator.is_not: "is not",
-    operator.contains: "in",
+    operator.le: "<=",
+    operator.lt: "<",
+    operator.mul: "*",
+    operator.ne: "!=",
+    operator.neg: "-",
+    operator.or_: "||",
+    operator.sub: "-",
+    operator.truediv: "/",
 }
 
 
@@ -286,17 +287,14 @@ class Scalar(Expression, BooleanOperation, ABC):
         """
         return BinaryOperation(operator.truediv, self, obj)
 
-    def __neg__(self, obj: Any) -> BinaryOperation:
-        """Creates a binary operation using the `neg` operator
-
-        Args:
-            obj: Object to use for the right operand
+    def __neg__(self) -> UnaryOperation:
+        """Creates a unary operation using the `neg` operator
 
         Returns:
-            binary operation
+            unary operation
 
         """
-        return BinaryOperation(operator.neg, self, obj)
+        return UnaryOperation(operator.neg, self)
 
     def in_(self, iterable: Union[Sequence, Expression]) -> BinaryOperation:
         """Creates a binary operation using the `contains` operator
