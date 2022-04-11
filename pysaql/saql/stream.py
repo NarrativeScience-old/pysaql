@@ -11,7 +11,7 @@ from .enums import FillDateTypeString, JoinType, Order
 from .expression import Expression
 from .field import field
 from .scalar import BinaryOperation, Scalar
-from .util import stringify
+from .util import stringify, stringify_list
 
 __ALL__ = ["load", "cogroup"]
 
@@ -49,6 +49,8 @@ class Stream(Expression):
     def increment_id(self, incr: int) -> int:
         """Increment the stream ID
 
+        This should not be called by clients.
+
         Args:
             incr: Value to increment
 
@@ -72,6 +74,15 @@ class Stream(Expression):
 
         self._id = max_id + 1
         return self._id
+
+    def add_statement(self, statement: StreamStatement) -> None:
+        """Add a statement to the stream
+
+        Args:
+            statement: Stream statement
+
+        """
+        self._statements.append(statement)
 
     def foreach(self, *fields: Scalar) -> Self:
         """Applies a set of expressions to every row in a dataset.
@@ -202,6 +213,8 @@ class ProjectionStatement(StreamStatement):
         """
         super().__init__()
         self.stream = stream
+        if not fields:
+            raise ValueError("At least one field is required")
         self.fields = fields
 
     def __str__(self) -> str:
@@ -227,6 +240,8 @@ class OrderStatement(StreamStatement):
         """
         super().__init__()
         self.stream = stream
+        if not fields:
+            raise ValueError("At least one field is required")
         self.fields = fields
 
     def __str__(self) -> str:
@@ -238,12 +253,9 @@ class OrderStatement(StreamStatement):
             else:
                 fields.append(f"{f[0]} {f[1]}")
 
-        if len(fields) > 1:
-            fields = f"({', '.join(fields)})"
-        else:
-            fields = fields[0]
-
-        return f"{self.stream.ref} = order {self.stream.ref} by {fields};"
+        return (
+            f"{self.stream.ref} = order {self.stream.ref} by {stringify_list(fields)};"
+        )
 
 
 class LimitStatement(StreamStatement):
@@ -259,8 +271,10 @@ class LimitStatement(StreamStatement):
         """
         super().__init__()
         self.stream = stream
-        if limit > 10_000:
-            raise ValueError(f"Limit must not exceed 10,000. Provided: {limit}")
+        if limit <= 0 or limit > 10_000:
+            raise ValueError(
+                f"Limit must be a number between 1 and 10,000. Provided: {limit}"
+            )
         self.limit = limit
 
     def __str__(self) -> str:
@@ -281,6 +295,8 @@ class GroupStatement(StreamStatement):
         """
         super().__init__()
         self.stream = stream
+        if not fields:
+            raise ValueError("At least one field is required")
         self.fields = fields
 
     def __str__(self) -> str:
@@ -302,6 +318,8 @@ class FilterStatement(StreamStatement):
         """
         super().__init__()
         self.stream = stream
+        if not filters:
+            raise ValueError("At least one filter is required")
         self.filters = filters
 
     def __str__(self) -> str:
@@ -334,6 +352,8 @@ class CogroupStatement(StreamStatement):
         """
         super().__init__()
         self.stream = stream
+        if not streams:
+            raise ValueError("At least one stream is required")
         self.streams = streams
         self.join_type = join_type
 
@@ -385,7 +405,7 @@ class FillStatement(StreamStatement):
     def __str__(self) -> str:
         """Cast this fill statement to a string"""
         args = [
-            f"dateCols=({','.join(str(c) for c in self.date_cols)}, {stringify(str(self.date_type_string))})"
+            f"dateCols=({', '.join(str(c) for c in self.date_cols)}, {stringify(str(self.date_type_string))})"
         ]
         if self.partition:
             args.append(f"partition={stringify(self.partition)}")
@@ -393,39 +413,36 @@ class FillStatement(StreamStatement):
         return f"{self.stream.ref} = fill {self.stream.ref} by ({', '.join(args)});"
 
 
-class load(Stream):
-    """Load a dataset"""
+def load(name: str) -> Stream:
+    """Load a dataset
 
-    def __init__(self, name: str):
-        """Initializer
+    Args:
+        name: Name of the dataset to load
 
-        Args:
-            name: Name of the dataset to load
+    Returns:
+        new stream
 
-        """
-        super().__init__()
-        self._statements.append(LoadStatement(self, name))
+    """
+    stream = Stream()
+    stream.add_statement(LoadStatement(stream, name))
+    return stream
 
 
-class cogroup(Stream):
-    """Combine data from two or more data streams into a single data stream"""
+def cogroup(
+    *streams: Tuple[Stream, Scalar], join_type: JoinType = JoinType.inner
+) -> Stream:
+    """Combine data from two or more data streams into a single data stream
 
-    join_type: JoinType
+    Args:
+        streams: Each item is a tuple of the stream to combine and the common field
+            that will be used to combine results
+        join_type: Type of join that determines how records are included in the
+            combined stream. Defaults to JoinType.inner.
 
-    def __init__(
-        self, *streams: Tuple[Stream, Scalar], join_type: JoinType = JoinType.inner
-    ) -> None:
-        """Initializer
-
-        Args:
-            streams: Each item is a tuple of the stream to combine and the common field
-                that will be used to combine results
-            join_type: Type of join that determines how records are included in the
-                combined stream. Defaults to JoinType.inner.
-
-        """
-        super().__init__()
-        self._statements.append(CogroupStatement(self, streams, join_type))
-        # Increment stream IDs for all streams contained in this cogroup statement.
-        # We'll use the ID of the first stream as the basis for incrementing.
-        self.increment_id(streams[0][0]._id)
+    """
+    stream = Stream()
+    stream.add_statement(CogroupStatement(stream, streams, join_type))
+    # Increment stream IDs for all streams contained in this cogroup statement.
+    # We'll use the ID of the first stream as the basis for incrementing.
+    stream.increment_id(streams[0][0]._id)
+    return stream

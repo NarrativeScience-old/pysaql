@@ -83,7 +83,7 @@ def test_complex():
         """q0 = limit q0 5;""",
         """q1 = load "opportunities";""",
         """q1 = foreach q1 generate 'name', coalesce('number', 'other number', 0);""",
-        """q1 = fill q1 by (dateCols=('Year','Month', "Y-M"), partition='Type');""",
+        """q1 = fill q1 by (dateCols=('Year', 'Month', "Y-M"), partition='Type');""",
         """q1 = filter q1 by 'name' == "abc" && ! 'flag' && ('number' > 0 || 'number' < 0) && 'empty' is null && 'list' in ["ny", "ma"] && 'closed_date' in [date(2022, 1).."2 months ago"];""",
         """q1 = foreach q1 generate sum('amount') over ([..2] partition by ('region', 'state') order by sum('amount') desc) as 'total amount', dense_rank() over ([..] partition by 'county' order by 'region' asc) as 'total amount';""",
         """q2 = cogroup q0 by 'Day in Week' full, q1 by 'Day in Week';""",

@@ -1,8 +1,10 @@
 """Contains unit tests for the stream module"""
 
-from pysaql.saql.enums import JoinType
+import pytest
+
+from pysaql.saql.enums import FillDateTypeString, JoinType, Order
 from pysaql.saql.field import field
-from pysaql.saql.stream import cogroup, load
+from pysaql.saql.stream import cogroup, load, Stream
 
 
 def test_load():
@@ -42,3 +44,115 @@ def test_cogroup():
         """q6 = load "q4_dataset";""",
         """q7 = cogroup q5 by 'c1_pk' left, q6 by 'q4_pk';""",
     ]
+
+
+def test_foreach__invalid():
+    """Should raise when no fields provided"""
+    stream = Stream()
+    with pytest.raises(ValueError):
+        stream.foreach()
+
+
+def test_foreach():
+    """Should generate field projections"""
+    stream = Stream()
+    stream.foreach(field("name"), field("number").alias("n"))
+    assert str(stream) == "q0 = foreach q0 generate 'name', 'number' as 'n';"
+
+
+def test_group__invalid():
+    """Should raise when no fields provided"""
+    stream = Stream()
+    with pytest.raises(ValueError):
+        stream.group()
+
+
+def test_group():
+    """Should group by fields"""
+    stream = Stream()
+    stream.group(field("name"), field("date"))
+    assert str(stream) == "q0 = group q0 by 'name', 'date';"
+
+
+def test_filter__invalid():
+    """Should raise when no fields provided"""
+    stream = Stream()
+    with pytest.raises(ValueError):
+        stream.filter()
+
+
+def test_filter__single():
+    """Should filter by a single condition"""
+    stream = Stream()
+    stream.filter(field("name") == "foo")
+    assert str(stream) == """q0 = filter q0 by 'name' == "foo";"""
+
+
+def test_filter__multiple():
+    """Should filter by a multiple conditions"""
+    stream = Stream()
+    stream.filter(field("name") == "foo", field("bar") == "baz")
+    assert str(stream) == """q0 = filter q0 by 'name' == "foo" && 'bar' == "baz";"""
+
+
+def test_limit__invalid():
+    """Should raise when invalid limit provided"""
+    stream = Stream()
+    with pytest.raises(ValueError):
+        stream.limit(0)
+
+    with pytest.raises(ValueError):
+        stream.limit(10_0001)
+
+
+def test_limit():
+    """Should limit by a row count"""
+    stream = Stream()
+    stream.limit(10)
+    assert str(stream) == """q0 = limit q0 10;"""
+
+
+def test_order__invalid():
+    """Should raise when no fields provided"""
+    stream = Stream()
+    with pytest.raises(ValueError):
+        stream.order()
+
+
+def test_order():
+    """Should order by different fields"""
+    stream = Stream()
+    stream.order(field("name"))
+    stream.order((field("name"), Order.desc))
+    stream.order(field("name"), field("bar"))
+    stream.order((field("name"), Order.desc), (field("bar"), Order.asc))
+    assert str(stream).split("\n") == [
+        """q0 = order q0 by 'name' asc;""",
+        """q0 = order q0 by 'name' desc;""",
+        """q0 = order q0 by ('name' asc, 'bar' asc);""",
+        """q0 = order q0 by ('name' desc, 'bar' asc);""",
+    ]
+
+
+def test_fill__no_partition():
+    """Should include fill statement without a partition"""
+    stream = Stream()
+    stream.fill(
+        [field("Year"), field("Month")],
+        FillDateTypeString.y_m,
+    )
+    assert str(stream) == """q0 = fill q0 by (dateCols=('Year', 'Month', "Y-M"));"""
+
+
+def test_fill__partition():
+    """Should include fill statement with a partition"""
+    stream = Stream()
+    stream.fill(
+        [field("Year"), field("Month")],
+        FillDateTypeString.y_m,
+        partition=field("Type"),
+    )
+    assert (
+        str(stream)
+        == """q0 = fill q0 by (dateCols=('Year', 'Month', "Y-M"), partition='Type');"""
+    )
