@@ -1,18 +1,26 @@
-from asyncio import futures
+"""Contains enum definitions"""
+
 from enum import Enum
 
 
 class StrEnum(Enum):
-    def __str__(self):
-        return self.value
+    """Base class for an enum that renders its value as string"""
+
+    def __str__(self) -> str:
+        """Cast enum to a string"""
+        return str(self.value)
 
 
 class Order(StrEnum):
+    """Sort order"""
+
     asc = "asc"
     desc = "desc"
 
 
 class JoinType(StrEnum):
+    """Join/cogroup type"""
+
     inner = "inner"
     left = "left"
     right = "right"
@@ -20,6 +28,8 @@ class JoinType(StrEnum):
 
 
 class DateDiffUnit(StrEnum):
+    """Unit for calculating the difference between datetimes"""
+
     year = "year"
     quarter = "quarter"
     month = "month"
@@ -30,13 +40,17 @@ class DateDiffUnit(StrEnum):
     second = "second"
 
 
-class Timeframe(StrEnum):
+class RelativeTimeframe(StrEnum):
+    """Timeframe for defining a relative date"""
+
     current = "current"
     future = "ahead"
     past = "ago"
 
 
-class DateUnit(StrEnum):
+class RelativeDateUnit(StrEnum):
+    """Unit for defining a relative date"""
+
     year = "year"
     quarter = "quarter"
     month = "month"
@@ -46,7 +60,9 @@ class DateUnit(StrEnum):
     fiscal_quarter = "quarter"
 
 
-class DateTypeString(StrEnum):
+class FillDateTypeString(StrEnum):
+    """Date format string used to fill time series"""
+
     y_m = "Y-M"
     y_q = "Y-Q"
     y = "Y"
