@@ -13,6 +13,8 @@ from .field import field
 from .scalar import BinaryOperation, Scalar
 from .util import stringify
 
+__ALL__ = ["load", "cogroup"]
+
 
 class StreamStatement(ABC):
     """Base class for a stream SAQL statement
@@ -43,6 +45,33 @@ class Stream(Expression):
     def ref(self) -> str:
         """Stream reference in the SAQL query"""
         return f"q{self._id}"
+
+    def increment_id(self, incr: int) -> int:
+        """Increment the stream ID
+
+        Args:
+            incr: Value to increment
+
+        Returns:
+            new stream ID
+
+        """
+        max_id = 0
+        i = 0
+        for statement in self._statements:
+            if isinstance(statement, LoadStatement):
+                statement.stream._id += incr + i
+                max_id = max(max_id, statement.stream._id)
+                i += 1
+            elif isinstance(statement, CogroupStatement):
+                # For cogroup statements, leave the left-most (first) branch alone
+                for (stream, _) in statement.streams[1:]:
+                    stream.increment_id(incr + i)
+                    max_id = max(max_id, stream._id)
+                    i += 1
+
+        self._id = max_id + 1
+        return self._id
 
     def foreach(self, *fields: Scalar) -> Self:
         """Applies a set of expressions to every row in a dataset.
@@ -396,11 +425,7 @@ class cogroup(Stream):
 
         """
         super().__init__()
-        # A cogroup implies that there are multiple streams. Therefore, we need to
-        # increment the stream IDs so each stream in the query has a unique reference.
-        max_id = 0
-        for i, (stream, _) in enumerate(streams):
-            stream._id += i
-            max_id = max(max_id, stream._id)
-        self._id = max_id + 1
         self._statements.append(CogroupStatement(self, streams, join_type))
+        # Increment stream IDs for all streams contained in this cogroup statement.
+        # We'll use the ID of the first stream as the basis for incrementing.
+        self.increment_id(streams[0][0]._id)
