@@ -1,6 +1,6 @@
 """Contains core function definitions"""
 
-from typing import Any, List, Optional
+from typing import Any, Optional, Sequence
 
 from .scalar import Scalar
 
@@ -8,7 +8,7 @@ from .scalar import Scalar
 class Function(Scalar):
     """Base function definition"""
 
-    _args: List[Any]
+    _args: Sequence[Any]
     _name: Optional[str] = None
 
     def __init__(self, *args: Any) -> None:

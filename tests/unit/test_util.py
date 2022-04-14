@@ -1,7 +1,7 @@
 """Contains unit tests for the util module"""
 
 
-import pysaql.saql.util as mod_ut
+import pysaql.util as mod_ut
 
 
 def test_escape_identifier():

@@ -1,11 +1,11 @@
 """Contains stream expressions and statements"""
 
+from __future__ import annotations
+
 from abc import ABC
 import functools
 import operator
 from typing import List, Optional, Sequence, Tuple, Union
-
-from typing_extensions import Self
 
 from .enums import FillDateTypeString, JoinType, Order
 from .expression import Expression
@@ -83,7 +83,7 @@ class Stream(Expression):
         """
         self._statements.append(statement)
 
-    def foreach(self, *fields: Scalar) -> Self:
+    def foreach(self, *fields: Scalar) -> Stream:
         """Applies a set of expressions to every row in a dataset.
 
         This action is often referred to as projection
@@ -98,14 +98,15 @@ class Stream(Expression):
         self._statements.append(ProjectionStatement(self, fields))
         return self
 
-    def group(self, *fields: Scalar) -> Self:
+    def group(self, *fields: Scalar) -> Stream:
         """Organizes the rows returned from a query into groups
 
         Within each group, you can apply an aggregate function, such as count() or sum()
         to get the number of items or sum, respectively.
 
         Args:
-            fields: One or more fields to group by
+            fields: One or more fields to group by. If no fields are provided,
+                "group by all" is assumed.
 
         Returns:
             self
@@ -114,7 +115,7 @@ class Stream(Expression):
         self._statements.append(GroupStatement(self, fields))
         return self
 
-    def filter(self, *filters: BinaryOperation) -> Self:
+    def filter(self, *filters: BinaryOperation) -> Stream:
         """Selects rows from a dataset based on a filter predicate
 
         Args:
@@ -128,7 +129,7 @@ class Stream(Expression):
         self._statements.append(FilterStatement(self, filters))
         return self
 
-    def order(self, *fields: Union[Scalar, Tuple[Scalar, Order]]) -> Self:
+    def order(self, *fields: Union[Scalar, Tuple[Scalar, Order]]) -> Stream:
         """Sorts in ascending or descending order on one or more fields.
 
         Args:
@@ -141,7 +142,7 @@ class Stream(Expression):
         self._statements.append(OrderStatement(self, fields))
         return self
 
-    def limit(self, limit: int) -> Self:
+    def limit(self, limit: int) -> Stream:
         """Limits the number of rows returned.
 
         Args:
@@ -159,7 +160,7 @@ class Stream(Expression):
         date_cols: Sequence[field],
         date_type_string: FillDateTypeString,
         partition: Optional[field] = None,
-    ) -> Self:
+    ) -> Stream:
         """Fills missing date values by adding rows in data stream
 
         Args:
@@ -202,7 +203,7 @@ class LoadStatement(StreamStatement):
 class ProjectionStatement(StreamStatement):
     """Statement to project columns from a stream"""
 
-    def __init__(self, stream: Stream, fields: List[Scalar]) -> None:
+    def __init__(self, stream: Stream, fields: Sequence[Scalar]) -> None:
         """Initializer
 
         Args:
@@ -228,7 +229,7 @@ class OrderStatement(StreamStatement):
     def __init__(
         self,
         stream: Stream,
-        fields: Union[Scalar, List[Scalar], List[Tuple[Scalar, Order]]],
+        fields: Sequence[Union[Scalar, Tuple[Scalar, Order]]],
     ) -> None:
         """Initializer
 
@@ -284,30 +285,29 @@ class LimitStatement(StreamStatement):
 class GroupStatement(StreamStatement):
     """Statement to group rows in a stream"""
 
-    def __init__(self, stream: Stream, fields: List[Scalar]):
+    def __init__(self, stream: Stream, fields: Sequence[Scalar]):
         """Initializer
 
         Args:
             stream: Stream containing this statement
-            fields: One or more fields to group by
+            fields: One or more fields to group by. If no fields are provided,
+                "group by all" is assumed.
 
         """
         super().__init__()
         self.stream = stream
-        if not fields:
-            raise ValueError("At least one field is required")
         self.fields = fields
 
     def __str__(self) -> str:
         """Cast this group statement to a string"""
-        fields = ", ".join(str(f) for f in self.fields)
+        fields = stringify_list(self.fields) if self.fields else "all"
         return f"{self.stream.ref} = group {self.stream.ref} by {fields};"
 
 
 class FilterStatement(StreamStatement):
     """Statement to filter rows in a stream"""
 
-    def __init__(self, stream: Stream, filters: List[BinaryOperation]) -> None:
+    def __init__(self, stream: Stream, filters: Sequence[BinaryOperation]) -> None:
         """Initializer
 
         Args:
@@ -336,7 +336,7 @@ class CogroupStatement(StreamStatement):
     def __init__(
         self,
         stream: Stream,
-        streams: List[Tuple[Stream, Scalar]],
+        streams: Sequence[Tuple[Stream, Scalar]],
         join_type: JoinType = JoinType.inner,
     ) -> None:
         """Initializer

@@ -1,17 +1,17 @@
 """Contains tests rendered queries"""
 
-from pysaql.saql.aggregation import count, dense_rank, sum
-from pysaql.saql.date_ import date, date_range, day_in_week, relative_date, to_date
-from pysaql.saql.enums import (
+from pysaql.aggregation import count, dense_rank, sum
+from pysaql.date_ import date, date_range, day_in_week, relative_date, to_date
+from pysaql.enums import (
     FillDateTypeString,
     JoinType,
     Order,
     RelativeDateUnit,
     RelativeTimeframe,
 )
-from pysaql.saql.function import coalesce
-from pysaql.saql.scalar import field
-from pysaql.saql.stream import cogroup, load
+from pysaql.function import coalesce
+from pysaql.scalar import field
+from pysaql.stream import cogroup, load
 
 
 def test_complex():

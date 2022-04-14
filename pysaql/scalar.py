@@ -1,10 +1,10 @@
 """Contains definition of a scalar"""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 import operator
 from typing import Any, Callable, Optional, Sequence, Union
-
-from typing_extensions import Self
 
 from .expression import Expression
 from .util import escape_identifier, stringify
@@ -43,7 +43,7 @@ class Operation:
 class BooleanOperation(Operation):
     """Mixin that defines boolean comparison methods"""
 
-    def __and__(self, obj: Any) -> "BinaryOperation":
+    def __and__(self, obj: Any) -> BinaryOperation:
         """Creates a binary operation using the `and` operator
 
         Args:
@@ -55,7 +55,7 @@ class BooleanOperation(Operation):
         """
         return BinaryOperation(operator.and_, self, obj)
 
-    def __or__(self, obj: Any) -> "BinaryOperation":
+    def __or__(self, obj: Any) -> BinaryOperation:
         """Creates a binary operation using the `or` operator
 
         Args:
@@ -67,7 +67,7 @@ class BooleanOperation(Operation):
         """
         return BinaryOperation(operator.or_, self, obj, wrap=True)
 
-    def __invert__(self) -> "BinaryOperation":
+    def __invert__(self) -> UnaryOperation:
         """Creates a unary operation using the `inv` operator
 
         Returns:
@@ -134,7 +134,7 @@ class Scalar(Expression, BooleanOperation, ABC):
 
     _alias: Optional[str] = None
 
-    def alias(self, name: str) -> Self:
+    def alias(self, name: str) -> Scalar:
         """Set the alias name for a scalar expression
 
         Args:
@@ -165,7 +165,7 @@ class Scalar(Expression, BooleanOperation, ABC):
 
         return s
 
-    def __eq__(self, obj: Any) -> BinaryOperation:
+    def __eq__(self, obj: Any) -> BinaryOperation:  # type: ignore[override]
         """Creates a binary operation using the `eq` or `is` operator
 
         Args:
@@ -178,7 +178,7 @@ class Scalar(Expression, BooleanOperation, ABC):
         op = operator.is_ if obj is None else operator.eq
         return BinaryOperation(op, self, obj)
 
-    def __ne__(self, obj: Any) -> BinaryOperation:
+    def __ne__(self, obj: Any) -> BinaryOperation:  # type: ignore[override]
         """Creates a binary operation using the `ne` or `is_not` operator
 
         Args:

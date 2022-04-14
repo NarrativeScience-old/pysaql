@@ -1,8 +1,8 @@
 """Contains aggregation function definitions"""
 
-from typing import Optional, Sequence, Tuple, Union
+from __future__ import annotations
 
-from typing_extensions import Self
+from typing import Optional, Sequence, Tuple, Union
 
 from .enums import Order
 from .function import Function, NullaryFunction
@@ -34,7 +34,7 @@ class WindowFunction(Function):
         row_range: Tuple[Optional[int], Optional[int]],
         reset_groups: Union[str, Sequence[Scalar]],
         order_by: Sequence[Union[Scalar, Tuple[Scalar, Order]]],
-    ) -> Self:
+    ) -> WindowFunction:
         """Set the windowing function parameters
 
         Args:
