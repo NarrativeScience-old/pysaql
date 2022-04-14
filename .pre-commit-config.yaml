@@ -2,7 +2,7 @@
 default_stages: [commit]
 
 default_language_version:
-  python: /Users/jon.drake/.pyenv/versions/3.9/bin/python
+  python: python3.9
 
 exclude: "examples/.*$"
 
