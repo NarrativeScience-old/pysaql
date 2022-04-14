@@ -1,8 +1,8 @@
 """Contains unit tests for the date_ module"""
 
-import pysaql.saql.date_ as mod_ut
-from pysaql.saql.enums import RelativeDateUnit, RelativeTimeframe
-from pysaql.saql.scalar import field
+import pysaql.date_ as mod_ut
+from pysaql.enums import RelativeDateUnit, RelativeTimeframe
+from pysaql.scalar import field
 
 
 def test_date():

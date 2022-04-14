@@ -1,7 +1,7 @@
 """Contains utility functions for working with expressions"""
 
 import json
-from typing import Any, List
+from typing import Any, Sequence
 
 
 def escape_identifier(s: str) -> str:
@@ -50,7 +50,7 @@ def stringify(obj: Any) -> str:
         return obj
 
 
-def stringify_list(seq: List) -> str:
+def stringify_list(seq: Sequence) -> str:
     """Cast a list into a string
 
     This will separate list items with commas and wrap the output in parenthesis if
@@ -63,5 +63,5 @@ def stringify_list(seq: List) -> str:
         stringified list
 
     """
-    seq = [seq] if not isinstance(seq, (list, tuple)) else seq
+    seq = [seq] if not isinstance(seq, (list, tuple, set)) else seq
     return f"({', '.join(str(s) for s in seq)})" if len(seq) > 1 else str(seq[0])

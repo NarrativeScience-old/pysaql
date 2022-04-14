@@ -1,7 +1,7 @@
 """Contains unit tests for the scalar module"""
 
 
-from pysaql.saql.scalar import field
+from pysaql.scalar import field
 
 
 def test_alias():

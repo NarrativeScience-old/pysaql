@@ -329,6 +329,6 @@ class date_range(Expression):
             end = ",".join(str(arg) for arg in self.end_date._args)
             return f"[dateRange([{start}], [{end}])]"
         else:
-            start = self.start_date or ""
-            end = self.end_date or ""
+            start = str(self.start_date) if self.start_date else ""
+            end = str(self.end_date) if self.end_date else ""
             return f"[{start}..{end}]"

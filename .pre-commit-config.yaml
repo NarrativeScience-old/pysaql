@@ -2,7 +2,7 @@
 default_stages: [commit]
 
 default_language_version:
-  python: python3
+  python: python3.9
 
 exclude: "examples/.*$"
 
@@ -74,7 +74,7 @@ repos:
         entry: mypy -p pysaql
         language: python
         types: [ file, python ]
-        additional_dependencies: [ mypy==0.910 ]
+        additional_dependencies: [ mypy==0.940 ]
         pass_filenames: false
 
       - id: flake8

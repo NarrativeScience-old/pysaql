@@ -2,9 +2,9 @@
 
 import pytest
 
-from pysaql.saql.enums import FillDateTypeString, JoinType, Order
-from pysaql.saql.scalar import field
-from pysaql.saql.stream import cogroup, load, Stream
+from pysaql.enums import FillDateTypeString, JoinType, Order
+from pysaql.scalar import field
+from pysaql.stream import cogroup, load, Stream
 
 
 def test_load():
@@ -60,18 +60,18 @@ def test_foreach():
     assert str(stream) == "q0 = foreach q0 generate 'name', 'number' as 'n';"
 
 
-def test_group__invalid():
-    """Should raise when no fields provided"""
+def test_group__all():
+    """Should group by all when no fields are provided"""
     stream = Stream()
-    with pytest.raises(ValueError):
-        stream.group()
+    stream.group()
+    assert str(stream) == "q0 = group q0 by all;"
 
 
 def test_group():
     """Should group by fields"""
     stream = Stream()
     stream.group(field("name"), field("date"))
-    assert str(stream) == "q0 = group q0 by 'name', 'date';"
+    assert str(stream) == "q0 = group q0 by ('name', 'date');"
 
 
 def test_filter__invalid():
