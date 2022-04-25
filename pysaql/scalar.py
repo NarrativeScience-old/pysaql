@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import ABC
 import operator
-from typing import Any, Callable, Optional, Sequence, Union
+from typing import Any, Callable, Sequence, Union
 
 from .expression import Expression
 from .util import escape_identifier, stringify
@@ -32,16 +32,7 @@ OPERATOR_STRINGS = {
 }
 
 
-class Operation:
-    """Base operation class
-
-    This establishes inheritance but does not currently implement any functionality.
-    """
-
-    pass
-
-
-class BooleanOperation(Operation):
+class BooleanOperation(Expression):
     """Mixin that defines boolean comparison methods"""
 
     def __and__(self, obj: Any) -> BinaryOperation:
@@ -101,7 +92,7 @@ class BinaryOperation(BooleanOperation):
         self.right = right
         self.wrap = wrap
 
-    def __str__(self) -> str:
+    def to_string(self) -> str:
         """Cast the binary operation to a string"""
         s = f"{stringify(self.left)} {OPERATOR_STRINGS[self.op]} {stringify(self.right)}"
         if self.wrap:
@@ -125,46 +116,13 @@ class UnaryOperation(BooleanOperation):
         self.op = op
         self.value = value
 
-    def __str__(self) -> str:
+    def to_string(self) -> str:
         """Cast the unary operation to a string"""
         return f"{OPERATOR_STRINGS[self.op]} {stringify(self.value)}"
 
 
-class Scalar(Expression, BooleanOperation, ABC):
+class Scalar(BooleanOperation, ABC):
     """Represents a scalar expression"""
-
-    _alias: Optional[str] = None
-
-    def alias(self, name: str) -> Scalar:
-        """Set the alias name for a scalar expression
-
-        Args:
-            name: Alias name
-
-        Returns:
-            self
-
-        """
-        self._alias = name
-        return self
-
-    @abstractmethod
-    def to_string(self) -> str:
-        """Cast the scalar to a string"""
-        pass
-
-    def __str__(self) -> str:
-        """Cast the scalar to a string, including the alias if set
-
-        Returns:
-            string
-
-        """
-        s = self.to_string()
-        if self._alias:
-            s += f" as {escape_identifier(self._alias)}"
-
-        return s
 
     def __eq__(self, obj: Any) -> BinaryOperation:  # type: ignore[override]
         """Creates a binary operation using the `eq` or `is` operator

@@ -8,7 +8,6 @@ import operator
 from typing import List, Optional, Sequence, Tuple, Union
 
 from .enums import FillDateTypeString, JoinType, Order
-from .expression import Expression
 from .scalar import BinaryOperation, field, Scalar
 from .util import stringify, stringify_list
 
@@ -24,7 +23,7 @@ class StreamStatement(ABC):
     stream: "Stream"
 
 
-class Stream(Expression):
+class Stream:
     """Base class for a SAQL data stream"""
 
     _id: int
