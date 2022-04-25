@@ -22,6 +22,7 @@ OPERATOR_STRINGS = {
     operator.is_not: "is not",
     operator.le: "<=",
     operator.lt: "<",
+    operator.mod: "%",
     operator.mul: "*",
     operator.ne: "!=",
     operator.neg: "-",
