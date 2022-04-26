@@ -282,7 +282,7 @@ class relative_date(Expression):
         self.unit = unit
         self.quantity = quantity
 
-    def __str__(self) -> str:
+    def to_string(self) -> str:
         """Cast the relative date into a string
 
         Returns:
@@ -317,7 +317,7 @@ class date_range(Expression):
         self.start_date = start_date
         self.end_date = end_date
 
-    def __str__(self) -> str:
+    def to_string(self) -> str:
         """Cast the date range into a string
 
         Returns:
