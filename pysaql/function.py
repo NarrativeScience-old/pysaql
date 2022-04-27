@@ -1,6 +1,6 @@
 """Contains core function definitions"""
 
-from typing import Any, Optional, Sequence
+from typing import Any, Optional, Sequence, Union
 
 from .scalar import Scalar
 from .util import stringify
@@ -39,6 +39,26 @@ class coalesce(Function):
     """
 
     pass
+
+
+class concat(Function):
+    """Concatenate strings together with a delimiter"""
+
+    def __init__(self, *args: Union[Scalar, str], delimiter: str = "-") -> None:
+        """Initializer
+
+        Args:
+            delimiter: Delimiter string. Defaults to "-".
+
+        """
+        super().__init__(*args)
+        self.delimiter = delimiter
+
+    def to_string(self) -> str:
+        """Cast the function to a string"""
+        args = [stringify(arg) for arg in self._args if arg is not None]
+        delimiter = f" + {stringify(self.delimiter)} + " if self.delimiter else " + "
+        return delimiter.join(args)
 
 
 class abs_(Function):

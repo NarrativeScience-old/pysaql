@@ -149,79 +149,79 @@ class now(Function):
     pass
 
 
-class year(Function):
+class year(DateFunction):
     """Get the year from a date value"""
 
     pass
 
 
-class quarter(Function):
+class quarter(DateFunction):
     """Get the quarter from a date value"""
 
     pass
 
 
-class month(Function):
+class month(DateFunction):
     """Get the month from a date value"""
 
     pass
 
 
-class week(Function):
+class week(DateFunction):
     """Get the week from a date value"""
 
     pass
 
 
-class day(Function):
+class day(DateFunction):
     """Get the day from a date value"""
 
     pass
 
 
-class minute(Function):
+class minute(DateFunction):
     """Get the minute from a date value"""
 
     pass
 
 
-class second(Function):
+class second(DateFunction):
     """Get the second from a date value"""
 
     pass
 
 
-class fiscal_year(Function):
+class fiscal_year(DateFunction):
     """Get the fiscal year from a date value"""
 
     _name = "fiscalYear"
 
 
-class fiscal_quarter(Function):
+class fiscal_quarter(DateFunction):
     """Get the fiscal quarter from a date value"""
 
     _name = "fiscalQuarter"
 
 
-class fiscal_month(Function):
+class fiscal_month(DateFunction):
     """Get the fiscal month from a date value"""
 
     _name = "fiscalMonth"
 
 
-class fiscal_week(Function):
+class fiscal_week(DateFunction):
     """Get the fiscal week from a date value"""
 
     _name = "fiscalWeek"
 
 
-class epoch_day(Function):
+class epoch_day(DateFunction):
     """Get the epoch day from a date value"""
 
     _name = "epochDay"
 
 
-class epoch_second(Function):
+class epoch_second(DateFunction):
     """Get the epoch second from a date value"""
 
     _name = "epochSecond"

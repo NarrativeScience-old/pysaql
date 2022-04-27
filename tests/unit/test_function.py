@@ -13,6 +13,22 @@ def test_coalesce():
     )
 
 
+def test_concat():
+    """Should concatenate values"""
+    assert (
+        str(fn.concat(field("name"), field("other"), "empty").alias("NAME"))
+        == """'name' + "-" + 'other' + "-" + "empty" as 'NAME'"""
+    )
+    assert (
+        str(
+            fn.concat(field("name"), field("other"), "empty", delimiter="~").alias(
+                "NAME"
+            )
+        )
+        == """'name' + "~" + 'other' + "~" + "empty" as 'NAME'"""
+    )
+
+
 def test_abs():
     """Should render abs function"""
     assert str(fn.abs_(field("num")).alias("NAME")) == """abs('num') as 'NAME'"""

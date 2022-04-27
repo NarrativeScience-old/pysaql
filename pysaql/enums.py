@@ -56,8 +56,8 @@ class RelativeDateUnit(StrEnum):
     month = "month"
     day = "day"
     week = "week"
-    fiscal_year = "year"
-    fiscal_quarter = "quarter"
+    fiscal_year = "fiscal_year"
+    fiscal_quarter = "fiscal_quarter"
 
 
 class FillDateTypeString(StrEnum):
