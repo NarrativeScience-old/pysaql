@@ -57,7 +57,7 @@ class BooleanOperation(Expression):
             binary operation
 
         """
-        return BinaryOperation(operator.or_, self, obj, wrap=True)
+        return BinaryOperation(operator.or_, self, obj)
 
     def __invert__(self) -> UnaryOperation:
         """Creates a unary operation using the `inv` operator
@@ -67,58 +67,6 @@ class BooleanOperation(Expression):
 
         """
         return UnaryOperation(operator.inv, self)
-
-
-class BinaryOperation(BooleanOperation):
-    """Represents a binary operation"""
-
-    def __init__(self, op: Callable, left: Any, right: Any, wrap: bool = False) -> None:
-        """Initializer
-
-        Args:
-            op: Operator function that accepts two operands
-            left: Left operand
-            right: Right operand
-            wrap: Flag that indicates whether the stringified operation should be
-                wrapped in parentheses to denote precedence. Defaults to False.
-
-        """
-        super().__init__()
-        if op not in OPERATOR_STRINGS:
-            operators = ", ".join(f"operator.{fn.__name__}" for fn in OPERATOR_STRINGS)
-            raise ValueError(f"Operator must be one of: {operators}. Provided: {op}")
-        self.op = op
-        self.left = left
-        self.right = right
-        self.wrap = wrap
-
-    def to_string(self) -> str:
-        """Cast the binary operation to a string"""
-        s = f"{stringify(self.left)} {OPERATOR_STRINGS[self.op]} {stringify(self.right)}"
-        if self.wrap:
-            s = f"({s})"
-
-        return s
-
-
-class UnaryOperation(BooleanOperation):
-    """Represents a unary operation"""
-
-    def __init__(self, op: Callable, value: Any) -> None:
-        """Initializer
-
-        Args:
-            op: Operator function that accepts one argument
-            value: Value to pass to the operator
-
-        """
-        super().__init__()
-        self.op = op
-        self.value = value
-
-    def to_string(self) -> str:
-        """Cast the unary operation to a string"""
-        return f"{OPERATOR_STRINGS[self.op]} {stringify(self.value)}"
 
 
 class Scalar(BooleanOperation, ABC):
@@ -268,13 +216,66 @@ class Scalar(BooleanOperation, ABC):
         return BinaryOperation(operator.contains, self, iterable)
 
 
+class BinaryOperation(Scalar):
+    """Represents a binary operation"""
+
+    def __init__(self, op: Callable, left: Any, right: Any, wrap: bool = False) -> None:
+        """Initializer
+
+        Args:
+            op: Operator function that accepts two operands
+            left: Left operand
+            right: Right operand
+            wrap: Flag that indicates whether the stringified operation should be
+                wrapped in parentheses to denote precedence. Defaults to False.
+
+        """
+        super().__init__()
+        if op not in OPERATOR_STRINGS:
+            operators = ", ".join(f"operator.{fn.__name__}" for fn in OPERATOR_STRINGS)
+            raise ValueError(f"Operator must be one of: {operators}. Provided: {op}")
+        self.op = op
+        self.left = left
+        self.right = right
+        self.wrap = wrap
+        for operand in (self.left, self.right):
+            if isinstance(operand, BinaryOperation):
+                operand.wrap = True
+
+    def to_string(self) -> str:
+        """Cast the binary operation to a string"""
+        s = f"{stringify(self.left)} {OPERATOR_STRINGS[self.op]} {stringify(self.right)}"
+        if self.wrap:
+            s = f"({s})"
+
+        return s
+
+
+class UnaryOperation(Scalar):
+    """Represents a unary operation"""
+
+    def __init__(self, op: Callable, value: Any) -> None:
+        """Initializer
+
+        Args:
+            op: Operator function that accepts one argument
+            value: Value to pass to the operator
+
+        """
+        super().__init__()
+        self.op = op
+        self.value = value
+
+    def to_string(self) -> str:
+        """Cast the unary operation to a string"""
+        return f"{OPERATOR_STRINGS[self.op]} {stringify(self.value)}"
+
+
 class field(Scalar):
     """Represents a field (column) in the data stream"""
 
-    name: str
-
     def __init__(self, name: str) -> None:
-        """Initializer
+        """Represents a field (column) in the data stream
 
         Args:
             name: Name of the field
@@ -286,3 +287,21 @@ class field(Scalar):
     def to_string(self) -> str:
         """Cast the field to a string"""
         return escape_identifier(self.name)
+
+
+class literal(Scalar):
+    """Represents a literal value"""
+
+    def __init__(self, value: Any) -> None:
+        """Represents a literal value
+
+        Args:
+            value: Literal value
+
+        """
+        super().__init__()
+        self.value = value
+
+    def to_string(self) -> str:
+        """Cast the literal to a string"""
+        return stringify(self.value)
