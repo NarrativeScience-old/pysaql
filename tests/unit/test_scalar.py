@@ -1,7 +1,7 @@
 """Contains unit tests for the scalar module"""
 
 
-from pysaql.scalar import field
+from pysaql.scalar import field, literal
 
 
 def test_alias():
@@ -59,6 +59,16 @@ def test_truediv():
     assert str(field("foo") / 10) == """'foo' / 10"""
 
 
+def test_truediv__literal_right():
+    """Should allow a literal value as the right operand when the left operand is a binary operation"""
+    assert str((field("foo") / 10) * 100) == """('foo' / 10) * 100"""
+
+
+def test_truediv__literal_left():
+    """Should require a literal value as the left operand when the right operand is a binary operation"""
+    assert str(literal(100) * (field("foo") / 10)) == """100 * ('foo' / 10)"""
+
+
 def test_neg():
     """Should return string for neg operation"""
     assert str(-field("foo")) == """- 'foo'"""
@@ -72,14 +82,16 @@ def test_in():
 def test_and():
     """Should return string for and operation"""
     assert (
-        str((field("foo") > 0) & (field("foo") < 10)) == """'foo' > 0 && 'foo' < 10"""
+        str((field("foo") > 0) & (field("foo") < 10))
+        == """('foo' > 0) && ('foo' < 10)"""
     )
 
 
 def test_or():
     """Should return string for or operation"""
     assert (
-        str((field("foo") > 0) | (field("foo") < 10)) == """('foo' > 0 || 'foo' < 10)"""
+        str((field("foo") > 0) | (field("foo") < 10))
+        == """('foo' > 0) || ('foo' < 10)"""
     )
 
 

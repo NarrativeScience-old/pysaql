@@ -92,7 +92,7 @@ def test_filter__multiple():
     """Should filter by a multiple conditions"""
     stream = Stream()
     stream.filter(field("name") == "foo", field("bar") == "baz")
-    assert str(stream) == """q0 = filter q0 by 'name' == "foo" && 'bar' == "baz";"""
+    assert str(stream) == """q0 = filter q0 by ('name' == "foo") && ('bar' == "baz");"""
 
 
 def test_limit__invalid():
