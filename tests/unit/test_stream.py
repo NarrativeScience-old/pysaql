@@ -46,6 +46,36 @@ def test_cogroup():
     ]
 
 
+def test_cogroup__all():
+    """Should cogroup by all"""
+
+    q0 = load("q0_dataset")
+    q1 = load("q1_dataset")
+
+    c0 = cogroup((q0, "all"), (q1, "all"))
+
+    assert str(c0).split("\n") == [
+        """q0 = load "q0_dataset";""",
+        """q1 = load "q1_dataset";""",
+        """q2 = cogroup q0 by all, q1 by all;""",
+    ]
+
+
+def test_cogroup__multiple():
+    """Should cogroup by multiple fields"""
+
+    q0 = load("q0_dataset")
+    q1 = load("q1_dataset")
+
+    c0 = cogroup((q0, [field("a"), field("b")]), (q1, [field("a"), field("b")]))
+
+    assert str(c0).split("\n") == [
+        """q0 = load "q0_dataset";""",
+        """q1 = load "q1_dataset";""",
+        """q2 = cogroup q0 by ('a', 'b'), q1 by ('a', 'b');""",
+    ]
+
+
 def test_foreach__invalid():
     """Should raise when no fields provided"""
     stream = Stream()
