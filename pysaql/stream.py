@@ -335,7 +335,7 @@ class CogroupStatement(StreamStatement):
     def __init__(
         self,
         stream: Stream,
-        streams: Sequence[Tuple[Stream, Scalar]],
+        streams: Sequence[Tuple[Stream, Union[Scalar, Sequence[Scalar], str]]],
         join_type: JoinType = JoinType.inner,
     ) -> None:
         """Initializer
@@ -343,7 +343,9 @@ class CogroupStatement(StreamStatement):
         Args:
             stream: Stream containing this statement
             streams: List of tuples that each define the stream to combine and the
-                common field that will be used to combine results
+                common field(s) that will be used to combine results. If there are no
+                specific fields to group by, pass "all" as the second item in the stream
+                tuple.
             join_type: Type of join that determines how records are included in the
                 combined stream
 
@@ -361,7 +363,18 @@ class CogroupStatement(StreamStatement):
         streams = []
         for i, item in enumerate(self.streams):
             stream, field_ = item
-            s = f"{stream.ref} by {field_}"
+            if isinstance(field_, Scalar):
+                groups = stringify(field_)
+            elif field_ == "all":
+                groups = "all"
+            elif isinstance(field_, Sequence):
+                groups = stringify_list(field_)
+            else:
+                raise ValueError(
+                    f"Cogroup field type not supported. Provided: {field_}"
+                )
+
+            s = f"{stream.ref} by {groups}"
             if i == 0 and self.join_type != JoinType.inner:
                 s += f" {self.join_type}"
 
@@ -432,8 +445,9 @@ def cogroup(
     """Combine data from two or more data streams into a single data stream
 
     Args:
-        streams: Each item is a tuple of the stream to combine and the common field
-            that will be used to combine results
+        streams: Each item is a tuple of the stream to combine and the common field(s)
+            that will be used to combine results. If there are no specific fields to
+            group by, pass "all" as the second item in the stream tuple.
         join_type: Type of join that determines how records are included in the
             combined stream. Defaults to JoinType.inner.
 
