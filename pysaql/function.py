@@ -147,6 +147,22 @@ class round_(Function):
         super().__init__(n, m)
 
 
+class sign(Function):
+    """Returns sign of the number (-1, 0, 1)
+
+    See: https://developer.salesforce.com/docs/atlas.en-us.bi_dev_guide_saql.meta/bi_dev_guide_saql/bi_saql_functions_math_sign.htm
+    """
+
+    def __init__(self, value: Scalar) -> None:
+        """Returns sign of the number (-1, 0, 1)
+
+        Args:
+            value: Number to determine the sign
+
+        """
+        super().__init__(value)
+
+
 class trunc(Function):
     """Returns the value of the numeric expression n truncated to m decimal places
 

@@ -452,7 +452,8 @@ def load(name: str) -> Stream:
 
 
 def cogroup(
-    *streams: Tuple[Stream, Scalar], join_type: JoinType = JoinType.inner
+    *streams: Tuple[Stream, Union[Scalar, Sequence[Scalar], str]],
+    join_type: JoinType = JoinType.inner,
 ) -> Stream:
     """Combine data from two or more data streams into a single data stream
 
