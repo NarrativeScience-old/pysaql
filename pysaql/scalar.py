@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC
 import operator
-from typing import Any, Callable, Sequence, Union
+from typing import Any, Callable, Optional, Protocol, Sequence, Union
 
 from .expression import Expression
 from .util import escape_identifier, stringify
@@ -271,22 +271,39 @@ class UnaryOperation(Scalar):
         return f"{OPERATOR_STRINGS[self.op]} {stringify(self.value)}"
 
 
+class StreamProtocol(Protocol):
+    """Protocol definition for a stream interface
+
+    This is defined to prevent recursive dependencies
+    """
+
+    @property
+    def ref(self) -> str:
+        """Stream reference in the SAQL query"""
+        pass
+
+
 class field(Scalar):
     """Represents a field (column) in the data stream"""
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, stream: Optional[StreamProtocol] = None) -> None:
         """Represents a field (column) in the data stream
 
         Args:
             name: Name of the field
+            stream: Optional stream. Providing a stream indicates the field
+                reference string should include a stream prefix to distinguish them from
+                fields in other streams.
 
         """
         super().__init__()
         self.name = name
+        self.stream = stream
 
     def to_string(self) -> str:
         """Cast the field to a string"""
-        return escape_identifier(self.name)
+        prefix = f"{self.stream.ref}." if self.stream else ""
+        return prefix + escape_identifier(self.name)
 
 
 class literal(Scalar):
