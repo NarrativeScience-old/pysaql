@@ -14,7 +14,7 @@ def escape_identifier(s: str) -> str:
         escaped identifier
 
     """
-    return "'" + s.replace("'", "\\'") + "'"
+    return "'" + s.replace("\\", "\\\\").replace("'", "\\'") + "'"
 
 
 def escape_string(s: str) -> str:
@@ -27,7 +27,7 @@ def escape_string(s: str) -> str:
         escaped string
 
     """
-    return '"' + s.replace('"', '\\"') + '"'
+    return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
 def stringify(obj: Any) -> str:

@@ -1,7 +1,48 @@
 """Contains unit tests for the util module"""
+from typing import Union
 
+from hypothesis import assume, given, note
 
 import pysaql.util as mod_ut
+
+
+@given(...)
+def test_escape_no_except(s: str):
+    """Shouldn't raise any exceptions"""
+    s1 = mod_ut.escape_identifier(s)
+    s2 = mod_ut.escape_string(s)
+    note(f"{s1=}")
+    note(f"{s2=}")
+    # ensure quotes are added
+    assert s1[0] == s1[-1] == "'"
+    assert s2[0] == s2[-1] == '"'
+    # slice to avoid counting first and last quotes
+    s1 = s1[1:-1]
+    s2 = s2[1:-1]
+    # assert any quotes are escaped
+    assert s1.count("'") == s1.count("\\'")
+    assert s2.count('"') == s2.count('\\"')
+    # assert backslashes are escaped
+    assert (s1.count("\\") - s1.count("'")) % 2 == 0
+    assert (s2.count("\\") - s2.count('"')) % 2 == 0
+
+
+literals = Union[float, str, bool, int]
+
+
+@given(...)
+def test_stringify(
+    s: Union[dict[str, literals], list[literals], str, float, bool, set[literals]]
+):
+    """Shouldn't raise any exceptions"""
+    mod_ut.stringify(s)
+
+
+@given(...)
+def test_stringify_list_noexcept(list_: list[literals]):
+    """Shouldn't raise any exceptions"""
+    assume(list_)
+    mod_ut.stringify_list(list_)
 
 
 def test_escape_identifier():

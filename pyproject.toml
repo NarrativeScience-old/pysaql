@@ -10,6 +10,7 @@ repository = "https://github.com/NarrativeScience/pysaql"
 
 [tool.poetry.dependencies]
 python = "^3.9"
+hypothesis = "^6.46.1"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.10.1"
