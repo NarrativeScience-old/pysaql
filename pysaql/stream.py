@@ -82,6 +82,18 @@ class Stream:
         """
         self._statements.append(statement)
 
+    def field(self, name: str) -> field:
+        """Create a new field object scoped to this stream
+
+        Args:
+            name: Name of the field
+
+        Returns:
+            field object
+
+        """
+        return field(name, stream=self)
+
     def foreach(self, *fields: Scalar) -> Stream:
         """Applies a set of expressions to every row in a dataset.
 
@@ -156,9 +168,9 @@ class Stream:
 
     def fill(
         self,
-        date_cols: Sequence[field],
+        date_cols: Sequence[Scalar],
         date_type_string: FillDateTypeString,
-        partition: Optional[field] = None,
+        partition: Optional[Scalar] = None,
     ) -> Stream:
         """Fills missing date values by adding rows in data stream
 
@@ -392,9 +404,9 @@ class FillStatement(StreamStatement):
     def __init__(
         self,
         stream: Stream,
-        date_cols: Sequence[field],
+        date_cols: Sequence[Scalar],
         date_type_string: FillDateTypeString,
-        partition: Optional[field] = None,
+        partition: Optional[Scalar] = None,
     ) -> None:
         """Initializer
 
@@ -440,7 +452,8 @@ def load(name: str) -> Stream:
 
 
 def cogroup(
-    *streams: Tuple[Stream, Scalar], join_type: JoinType = JoinType.inner
+    *streams: Tuple[Stream, Union[Scalar, Sequence[Scalar], str]],
+    join_type: JoinType = JoinType.inner,
 ) -> Stream:
     """Combine data from two or more data streams into a single data stream
 

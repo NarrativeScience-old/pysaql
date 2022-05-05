@@ -90,6 +90,20 @@ def test_foreach():
     assert str(stream) == "q0 = foreach q0 generate 'name', 'number' as 'n';"
 
 
+def test_foreach__cogroup():
+    """Should generate field projections on top of a cogroup"""
+    q0 = load("q0_dataset")
+    q1 = load("q1_dataset")
+    c0 = cogroup((q0, [field("a"), field("b")]), (q1, [field("a"), field("b")]))
+    c0.foreach(q0.field("a"), q1.field("b"))
+    assert str(c0).split("\n") == [
+        """q0 = load "q0_dataset";""",
+        """q1 = load "q1_dataset";""",
+        """q2 = cogroup q0 by ('a', 'b'), q1 by ('a', 'b');""",
+        """q2 = foreach q2 generate q0.'a', q1.'b';""",
+    ]
+
+
 def test_group__all():
     """Should group by all when no fields are provided"""
     stream = Stream()
