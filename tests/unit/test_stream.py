@@ -4,7 +4,7 @@ import pytest
 
 from pysaql.enums import FillDateTypeString, JoinType, Order
 from pysaql.scalar import field
-from pysaql.stream import cogroup, load, Stream
+from pysaql.stream import cogroup, load, Stream, union
 
 
 def test_load():
@@ -200,3 +200,37 @@ def test_fill__partition():
         str(stream)
         == """q0 = fill q0 by (dateCols=('Year', 'Month', "Y-M"), partition='Type');"""
     )
+
+
+def test_union():
+    """Should return a unioned stream"""
+
+    q0 = load("q0_dataset")
+    q1 = load("q1_dataset")
+    q2 = load("q2_dataset")
+    q3 = load("q3_dataset")
+
+    u0 = union(q0, q1)
+    u1 = union(u0, q2, q3)
+
+    assert str(u1).split("\n") == [
+        """q0 = load "q0_dataset";""",
+        """q1 = load "q1_dataset";""",
+        """q2 = union q0, q1;""",
+        """q3 = load "q2_dataset";""",
+        """q4 = load "q3_dataset";""",
+        """q5 = union q2, q3, q4;""",
+    ]
+
+
+def test_union__no_streams():
+    """Should raise ValueError when no streams are provided"""
+    with pytest.raises(ValueError):
+        union()
+
+
+def test_union__one_streams():
+    """Should raise ValueError when a single streams is provided"""
+    with pytest.raises(ValueError):
+        q0 = load("q0_dataset")
+        union(q0)

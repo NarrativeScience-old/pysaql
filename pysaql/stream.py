@@ -63,9 +63,14 @@ class Stream:
                 statement.stream._id += incr + i
                 max_id = max(max_id, statement.stream._id)
                 i += 1
-            elif isinstance(statement, CogroupStatement):
-                # For cogroup statements, leave the left-most (first) branch alone
-                for (stream, _) in statement.streams[1:]:
+            elif isinstance(statement, (CogroupStatement, UnionStatement)):
+                # For cogroup and union statements, leave the left-most (first) branch alone
+                if isinstance(statement, CogroupStatement):
+                    streams = [stream for (stream, _) in statement.streams[1:]]
+                else:
+                    streams = list(statement.streams[1:])
+
+                for stream in streams:
                     stream.increment_id(incr + i)
                     max_id = max(max_id, stream._id)
                     i += 1
@@ -421,8 +426,15 @@ class UnionStatement(StreamStatement):
 
     def __str__(self) -> str:
         """Cast this union statement to a string"""
-        stream_refs = [stream.ref for stream in self.streams]
-        return f"{self.stream.ref} = union {', '.join(stream_refs)}"
+        lines = []
+        stream_refs = []
+
+        for stream in self.streams:
+            lines.append(str(stream))
+            stream_refs.append(stream.ref)
+
+        lines.append(f"{self.stream.ref} = union {', '.join(stream_refs)};")
+        return "\n".join(lines)
 
 
 class FillStatement(StreamStatement):
