@@ -398,6 +398,33 @@ class CogroupStatement(StreamStatement):
         return "\n".join(lines)
 
 
+class UnionStatement(StreamStatement):
+    """Statement to combine (union) two or more streams with the same structure into one"""
+
+    def __init__(
+        self,
+        stream: Stream,
+        streams: Sequence[Stream],
+    ) -> None:
+        """Initializer
+
+        Args:
+            stream: Stream containing this statement
+            streams: Streams that will be combined
+
+        """
+        super().__init__()
+        self.stream = stream
+        if not streams or len(streams) < 2:
+            raise ValueError("At least two streams are required")
+        self.streams = streams
+
+    def __str__(self) -> str:
+        """Cast this union statement to a string"""
+        stream_refs = [stream.ref for stream in self.streams]
+        return f"{self.stream.ref} = union {', '.join(stream_refs)}"
+
+
 class FillStatement(StreamStatement):
     """Statement to fill a data stream with missing dates"""
 
@@ -470,4 +497,25 @@ def cogroup(
     # Increment stream IDs for all streams contained in this cogroup statement.
     # We'll use the ID of the first stream as the basis for incrementing.
     stream.increment_id(streams[0][0]._id)
+    return stream
+
+
+def union(*streams: Stream) -> Stream:
+    """Union data from two or more data streams into a single data stream
+
+    Each stream should have the same field names and structure. The streams do
+    not need to be from the same dataset.
+
+    Args:
+        streams: Streams that will be unioned together
+
+    Returns:
+        a new stream
+
+    """
+    stream = Stream()
+    stream.add_statement(UnionStatement(stream, streams))
+    # Increment stream IDs for all streams contained in this union statement.
+    # We'll use the ID of the first stream as the basis for incrementing.
+    stream.increment_id(streams[0]._id)
     return stream
