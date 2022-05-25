@@ -54,3 +54,13 @@ def test_stringify_list__one():
 def test_stringify_list__multiple():
     """Should stringify a list with one item"""
     assert mod_ut.stringify_list(["foo", "bar"]) == "(foo, bar)"
+
+
+def test_flatten__empty():
+    """Should return empty list"""
+    assert mod_ut.flatten([]) == []
+
+
+def test_flatten__nested():
+    """Should flatten nested list"""
+    assert mod_ut.flatten([1, [2, [3, [4, 5]], 6], 7]) == [1, 2, 3, 4, 5, 6, 7]
