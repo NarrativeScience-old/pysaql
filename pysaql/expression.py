@@ -2,7 +2,6 @@
 
 
 from abc import ABC, abstractmethod
-from copy import deepcopy
 from typing import Optional
 
 from .util import escape_identifier
@@ -20,9 +19,6 @@ class Expression(ABC):
     def alias(self, name: str) -> "Expression":
         """Set the alias name
 
-        This creates and returns a new expression object so a single field can be
-        aliased multiple times.
-
         Args:
             name: Alias name
 
@@ -30,9 +26,8 @@ class Expression(ABC):
             new expression object with alias
 
         """
-        new_expr = deepcopy(self)
-        new_expr._alias = name
-        return new_expr
+        self._alias = name
+        return self
 
     @abstractmethod
     def to_string(self) -> str:
