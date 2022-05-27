@@ -1,7 +1,7 @@
 """Contains unit tests for the util module"""
 from typing import Union
 
-from hypothesis import assume, given, note
+from hypothesis import assume, given, note, strategies as st
 
 import pysaql.util as mod_ut
 
@@ -28,12 +28,20 @@ def test_escape_no_except(s: str):
 
 
 literals = Union[float, str, bool, int]
+_nested_list = st.deferred(lambda: st.from_type(literals) | st.lists(nested_list))
+nested_list = st.lists(_nested_list)
 
 
 @given(...)
 def test_stringify(
     s: Union[dict[str, literals], list[literals], str, float, bool, set[literals]]
 ):
+    """Shouldn't raise any exceptions"""
+    mod_ut.stringify(s)
+
+
+@given(nested_list)
+def test_stringify_nested(s):
     """Shouldn't raise any exceptions"""
     mod_ut.stringify(s)
 
@@ -105,3 +113,9 @@ def test_flatten__empty():
 def test_flatten__nested():
     """Should flatten nested list"""
     assert mod_ut.flatten([1, [2, [3, [4, 5]], 6], 7]) == [1, 2, 3, 4, 5, 6, 7]
+
+
+@given(nested_list)
+def test_flatten__nested_noexcept(list_):
+    """Should flatten nested list without throwing an exception"""
+    mod_ut.flatten(list_)
