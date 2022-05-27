@@ -23,7 +23,7 @@ class Expression(ABC):
             name: Alias name
 
         Returns:
-            self
+            new expression object with alias
 
         """
         self._alias = name

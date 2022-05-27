@@ -65,3 +65,20 @@ def stringify_list(seq: Sequence) -> str:
     """
     seq = [seq] if not isinstance(seq, (list, tuple, set)) else seq
     return f"({', '.join(str(s) for s in seq)})" if len(seq) > 1 else str(seq[0])
+
+
+def flatten(seq: list) -> list:
+    """Recursively flatten a list
+
+    Args:
+        seq: Sequence of items
+
+    Returns:
+        flatten list of items
+
+    """
+    if not seq:
+        return seq
+    if isinstance(seq[0], list):
+        return flatten(seq[0]) + flatten(seq[1:])
+    return seq[:1] + flatten(seq[1:])

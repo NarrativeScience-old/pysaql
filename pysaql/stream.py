@@ -9,7 +9,7 @@ from typing import List, Optional, Sequence, Tuple, Union
 
 from .enums import FillDateTypeString, JoinType, Order
 from .scalar import BinaryOperation, field, Scalar
-from .util import stringify, stringify_list
+from .util import flatten, stringify, stringify_list
 
 __ALL__ = ["load", "cogroup"]
 
@@ -21,6 +21,15 @@ class StreamStatement(ABC):
     """
 
     stream: "Stream"
+
+    def get_streams(self) -> list[Stream]:
+        """Get a flat list of streams nested within this stream statement
+
+        Returns:
+            list of streams
+
+        """
+        return []
 
 
 class Stream:
@@ -44,34 +53,14 @@ class Stream:
         """Stream reference in the SAQL query"""
         return f"q{self._id}"
 
-    def increment_id(self, incr: int) -> int:
-        """Increment the stream ID
-
-        This should not be called by clients.
-
-        Args:
-            incr: Value to increment
+    def get_streams(self) -> list[Stream]:
+        """Get a flat list of streams nested within this stream
 
         Returns:
-            new stream ID
+            list of streams
 
         """
-        max_id = 0
-        i = 0
-        for statement in self._statements:
-            if isinstance(statement, LoadStatement):
-                statement.stream._id += incr + i
-                max_id = max(max_id, statement.stream._id)
-                i += 1
-            elif isinstance(statement, CogroupStatement):
-                # For cogroup statements, leave the left-most (first) branch alone
-                for (stream, _) in statement.streams[1:]:
-                    stream.increment_id(incr + i)
-                    max_id = max(max_id, stream._id)
-                    i += 1
-
-        self._id = max_id + 1
-        return self._id
+        return flatten([s.get_streams() for s in self._statements])
 
     def add_statement(self, statement: StreamStatement) -> None:
         """Add a statement to the stream
@@ -81,6 +70,21 @@ class Stream:
 
         """
         self._statements.append(statement)
+        # Update all stream IDs
+        for i, s in enumerate(flatten(statement.get_streams())):
+            s._id = i
+
+    def field(self, name: str) -> field:
+        """Create a new field object scoped to this stream
+
+        Args:
+            name: Name of the field
+
+        Returns:
+            field object
+
+        """
+        return field(name, stream=self)
 
     def foreach(self, *fields: Scalar) -> Stream:
         """Applies a set of expressions to every row in a dataset.
@@ -156,9 +160,9 @@ class Stream:
 
     def fill(
         self,
-        date_cols: Sequence[field],
+        date_cols: Sequence[Scalar],
         date_type_string: FillDateTypeString,
-        partition: Optional[field] = None,
+        partition: Optional[Scalar] = None,
     ) -> Stream:
         """Fills missing date values by adding rows in data stream
 
@@ -197,6 +201,15 @@ class LoadStatement(StreamStatement):
     def __str__(self) -> str:
         """Cast this load statement to a string"""
         return f'{self.stream.ref} = load "{self.name}";'
+
+    def get_streams(self) -> list[Stream]:
+        """Get a flat list of streams nested within this stream statement
+
+        Returns:
+            list of streams
+
+        """
+        return [self.stream]
 
 
 class ProjectionStatement(StreamStatement):
@@ -385,6 +398,63 @@ class CogroupStatement(StreamStatement):
 
         return "\n".join(lines)
 
+    def get_streams(self) -> list[Stream]:
+        """Get a flat list of streams nested within this stream statement
+
+        Returns:
+            list of streams
+
+        """
+        return flatten(
+            [
+                [stream.get_streams() for (stream, _) in self.streams],
+                [self.stream],
+            ]
+        )
+
+
+class UnionStatement(StreamStatement):
+    """Statement to combine (union) two or more streams with the same structure into one"""
+
+    def __init__(
+        self,
+        stream: Stream,
+        streams: Sequence[Stream],
+    ) -> None:
+        """Initializer
+
+        Args:
+            stream: Stream containing this statement
+            streams: Streams that will be combined
+
+        """
+        super().__init__()
+        self.stream = stream
+        if not streams or len(streams) < 2:
+            raise ValueError("At least two streams are required")
+        self.streams = streams
+
+    def __str__(self) -> str:
+        """Cast this union statement to a string"""
+        lines = []
+        stream_refs = []
+
+        for stream in self.streams:
+            lines.append(str(stream))
+            stream_refs.append(stream.ref)
+
+        lines.append(f"{self.stream.ref} = union {', '.join(stream_refs)};")
+        return "\n".join(lines)
+
+    def get_streams(self) -> list[Stream]:
+        """Get a flat list of streams nested within this stream statement
+
+        Returns:
+            list of streams
+
+        """
+        return flatten([[s.get_streams() for s in self.streams], [self.stream]])
+
 
 class FillStatement(StreamStatement):
     """Statement to fill a data stream with missing dates"""
@@ -392,9 +462,9 @@ class FillStatement(StreamStatement):
     def __init__(
         self,
         stream: Stream,
-        date_cols: Sequence[field],
+        date_cols: Sequence[Scalar],
         date_type_string: FillDateTypeString,
-        partition: Optional[field] = None,
+        partition: Optional[Scalar] = None,
     ) -> None:
         """Initializer
 
@@ -440,7 +510,8 @@ def load(name: str) -> Stream:
 
 
 def cogroup(
-    *streams: Tuple[Stream, Scalar], join_type: JoinType = JoinType.inner
+    *streams: Tuple[Stream, Union[Scalar, Sequence[Scalar], str]],
+    join_type: JoinType = JoinType.inner,
 ) -> Stream:
     """Combine data from two or more data streams into a single data stream
 
@@ -454,7 +525,22 @@ def cogroup(
     """
     stream = Stream()
     stream.add_statement(CogroupStatement(stream, streams, join_type))
-    # Increment stream IDs for all streams contained in this cogroup statement.
-    # We'll use the ID of the first stream as the basis for incrementing.
-    stream.increment_id(streams[0][0]._id)
+    return stream
+
+
+def union(*streams: Stream) -> Stream:
+    """Union data from two or more data streams into a single data stream
+
+    Each stream should have the same field names and structure. The streams do
+    not need to be from the same dataset.
+
+    Args:
+        streams: Streams that will be unioned together
+
+    Returns:
+        a new stream
+
+    """
+    stream = Stream()
+    stream.add_statement(UnionStatement(stream, streams))
     return stream
